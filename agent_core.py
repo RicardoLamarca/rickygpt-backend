@@ -1,6 +1,6 @@
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langgraph.prebuilt import create_react_agent
-from tools import execute_julia_code
+from tools import execute_physics_code
 import os
 from dotenv import load_dotenv
 
@@ -14,7 +14,7 @@ def create_rickygpt():
     )
 
     # 2. Load the Hands
-    tools = [execute_julia_code]
+    tools = [execute_physics_code]
     # 3. Create the System Prompt (RickyGPT's core instructions)
     system_prompt = (
     """
@@ -27,7 +27,7 @@ CRITICAL RULES:
 3. The ONLY thing saved to the JSON file should be the raw numerical arrays.
 4. For single-body 2D simulations, you MUST name arrays exactly 'x' and 'y'. For multi-body systems (like a double pendulum), you MUST name them 'x1', 'y1', 'x2', 'y2', etc.
 5. For 3D simulations, you MUST name the arrays exactly 'x', 'y', and 'z'.
-6. In your text response, ALWAYS explain the physics math and format the Julia code you used in markdown blocks.
+6. In your text response, ALWAYS explain the physics math and format the physics code you used in markdown blocks.
     """
     )
     
