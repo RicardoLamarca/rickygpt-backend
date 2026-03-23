@@ -10,10 +10,10 @@ app = FastAPI()
 # The VIP Bouncer
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://rickygpt-backend.vercel.app"],  
-    allow_credentials=True,  
-    allow_methods=["*"],  
-    allow_headers=["*"],
+    allow_origins=["*"],  # Allows all origins (you can restrict this to your Vercel URL later for security)
+    allow_credentials=True,
+    allow_methods=["*"],  # Allows all methods (POST, GET, etc.)
+    allow_headers=["*"],  # Allows all headers
 )
 
 # Initialize the agent
