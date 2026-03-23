@@ -4,11 +4,10 @@ import sys
 from langchain_core.tools import tool
 
 @tool
-def execute_physics_code(code: str) -> str:
+def execute_julia_code(code: str) -> str:
     """
-    Executes Python code for physics simulations.
+    Executes Julia code for physics simulations.
     CRITICAL INSTRUCTION: Your code MUST calculate the math and save the arrays to a file named 'workspace/data.json'.
-    For a double pendulum, save a JSON object with keys 'x1', 'y1', 'x2', 'y2' containing lists of floats.
     DO NOT generate plots, PNGs, or GIFs. ONLY save the raw numerical data using the json module.
     """
     workspace_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "workspace")

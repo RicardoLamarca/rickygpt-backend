@@ -1,6 +1,6 @@
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langgraph.prebuilt import create_react_agent
-from tools import execute_physics_code
+from tools import execute_julia_code
 import os
 from dotenv import load_dotenv
 
@@ -14,7 +14,7 @@ def create_rickygpt():
     )
 
     # 2. Load the Hands
-    tools = [execute_physics_code]
+    tools = [execute_julia_code]
     # 3. Create the System Prompt (RickyGPT's core instructions)
     system_prompt = (
     """
