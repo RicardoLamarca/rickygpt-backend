@@ -11,6 +11,9 @@ function App() {
   const [isAnimating, setIsAnimating] = useState(false);
   const [currentFrame, setCurrentFrame] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
+  
+  // NEW: Speed state (1 = normal, 0.5 = slow, 2 = fast)
+  const [speed, setSpeed] = useState(1);
 
   const maxFrames = simData?.x ? simData.x.length : (simData?.x1 ? simData.x1.length : 0);
 
@@ -64,6 +67,7 @@ function App() {
   useEffect(() => {
     let interval;
     if (isAnimating && maxFrames > 0) {
+      // NEW: Divide the base 30ms interval by the speed multiplier
       interval = setInterval(() => {
         setCurrentFrame((prev) => {
           if (prev >= maxFrames) {
@@ -72,23 +76,23 @@ function App() {
           }
           return prev + 5; 
         });
-      }, 30); 
+      }, 30 / speed); 
     }
     return () => clearInterval(interval);
-  }, [isAnimating, maxFrames]);
+  }, [isAnimating, maxFrames, speed]); // Added speed to dependency array
 
   return (
     <div style={{ 
       display: 'flex', height: '100vh', width: '100vw', 
       fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', 
-      backgroundColor: '#0f172a', // Sleek deep slate background
+      backgroundColor: '#0f172a', 
       color: '#f8fafc', margin: 0, overflow: 'hidden'
     }}>
       
       {/* LEFT PANEL: Chat Interface */}
       <div style={{ 
         width: '400px', display: 'flex', flexDirection: 'column', 
-        backgroundColor: '#1e293b', // Slightly lighter slate for the sidebar
+        backgroundColor: '#1e293b', 
         borderRight: '1px solid #334155', padding: '24px', zIndex: 10,
         boxShadow: '4px 0 24px rgba(0,0,0,0.2)'
       }}>
@@ -238,6 +242,22 @@ function App() {
                  onMouseOut={(e) => { e.target.style.backgroundColor = '#3b82f6' }}
                >
                  {isAnimating ? "Pause" : currentFrame >= maxFrames ? "Replay" : "Play"}
+               </button>
+
+               {/* NEW: Speed Toggle Button */}
+               <button 
+                 onClick={() => setSpeed(s => s === 1 ? 0.5 : s === 0.5 ? 2 : 1)}
+                 title="Playback Speed"
+                 style={{ 
+                   padding: '8px 12px', backgroundColor: 'transparent', color: '#cbd5e1', 
+                   border: '1px solid #475569', borderRadius: '6px', fontWeight: '500', cursor: 'pointer',
+                   display: 'flex', alignItems: 'center', transition: 'all 0.2s', fontSize: '0.85rem',
+                   minWidth: '45px', justifyContent: 'center'
+                 }}
+                 onMouseOver={(e) => { e.target.style.backgroundColor = '#334155'; e.target.style.color = '#ffffff'; }}
+                 onMouseOut={(e) => { e.target.style.backgroundColor = 'transparent'; e.target.style.color = '#cbd5e1'; }}
+               >
+                 {speed}x
                </button>
 
                {/* Frame Slider */}
