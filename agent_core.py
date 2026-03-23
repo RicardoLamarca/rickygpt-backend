@@ -16,7 +16,7 @@ def create_rickygpt():
 
     # 2. Load the Hands
     tools = [execute_julia_code]
-
+    tools = [execute_physics_code]
     # 3. Create the System Prompt (RickyGPT's core instructions)
     system_prompt = (
     """
