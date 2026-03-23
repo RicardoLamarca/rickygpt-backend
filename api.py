@@ -7,11 +7,12 @@ from agent_core import create_rickygpt
 
 app = FastAPI()
 
-# Allow your React frontend to talk to this backend
+# The VIP Bouncer: Allow your React frontend to talk to this backend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], 
-    allow_methods=["*"],
+    allow_origins=["*"],  # Allow requests from any website (like Vercel)
+    allow_credentials=True,
+    allow_methods=["*"],  # Allow all types of requests (GET, POST, etc.)
     allow_headers=["*"],
 )
 
