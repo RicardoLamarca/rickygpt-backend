@@ -24,7 +24,7 @@ function App() {
     setIsLoading(true);
 
     try {
-      const response = await fetch('https://rickygpt-api.onrender.com/simulate', {
+      const response = await fetch('https://rickygpt.onrender.com/simulate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt: prompt })
