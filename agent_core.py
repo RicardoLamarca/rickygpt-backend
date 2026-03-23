@@ -1,6 +1,7 @@
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langgraph.prebuilt import create_react_agent
 from tools import execute_julia_code
+from tools import execute_physics_code
 import os
 from dotenv import load_dotenv
 
