@@ -5,7 +5,7 @@ const Plot = PlotlyPlot.default || PlotlyPlot;
 function App() {
   const [prompt, setPrompt] = useState("");
   const [chatHistory, setChatHistory] = useState([
-    { role: 'ai', content: "System Online. Physics engine initialized. What shall we simulate today?" }
+    { role: 'ai', content: "System Online. Physics engine initialized. How can I assist with your simulations today?" }
   ]);
   const [simData, setSimData] = useState(null);
   const [isAnimating, setIsAnimating] = useState(false);
@@ -24,7 +24,7 @@ function App() {
     setIsLoading(true);
 
     try {
-      const response = await fetch('https://rickygpt.onrender.com/simulate', {
+      const response = await fetch('https://rickygpt-api.onrender.com/simulate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt: prompt })
@@ -38,7 +38,7 @@ function App() {
       }
     } catch (error) {
       console.error("Error:", error);
-      setChatHistory([...newChat, { role: 'ai', content: "Server Error: Unable to reach the RickyGPT backend." }]);
+      setChatHistory([...newChat, { role: 'ai', content: "Connection Error: Unable to reach the simulation backend. Please ensure the server is running." }]);
     }
     setIsLoading(false);
   };
@@ -48,7 +48,7 @@ function App() {
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(simData, null, 2));
     const downloadAnchorNode = document.createElement('a');
     downloadAnchorNode.setAttribute("href", dataStr);
-    downloadAnchorNode.setAttribute("download", "ricky_simulation_data.json");
+    downloadAnchorNode.setAttribute("download", "simulation_export.json");
     document.body.appendChild(downloadAnchorNode); 
     downloadAnchorNode.click();
     downloadAnchorNode.remove();
@@ -79,31 +79,40 @@ function App() {
 
   return (
     <div style={{ 
-      display: 'flex', height: '100vh', width: '100vw', fontFamily: '"Inter", "Segoe UI", sans-serif', 
-      backgroundColor: '#050505', backgroundImage: 'radial-gradient(circle at 50% 0%, #1a1a2e 0%, #050505 80%)',
-      color: '#e2e8f0', margin: 0, overflow: 'hidden'
+      display: 'flex', height: '100vh', width: '100vw', 
+      fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', 
+      backgroundColor: '#0f172a', // Sleek deep slate background
+      color: '#f8fafc', margin: 0, overflow: 'hidden'
     }}>
       
       {/* LEFT PANEL: Chat Interface */}
       <div style={{ 
-        width: '380px', display: 'flex', flexDirection: 'column', 
-        backgroundColor: 'rgba(255, 255, 255, 0.02)', backdropFilter: 'blur(10px)',
-        borderRight: '1px solid rgba(255,255,255,0.05)', padding: '24px', zIndex: 10,
-        boxShadow: '4px 0 24px rgba(0,0,0,0.5)'
+        width: '400px', display: 'flex', flexDirection: 'column', 
+        backgroundColor: '#1e293b', // Slightly lighter slate for the sidebar
+        borderRight: '1px solid #334155', padding: '24px', zIndex: 10,
+        boxShadow: '4px 0 24px rgba(0,0,0,0.2)'
       }}>
         
         {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px', paddingBottom: '16px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-          <div style={{ fontSize: '32px', animation: 'spin 10s linear infinite' }}>⚛️</div>
-          <h2 style={{ 
-            margin: 0, color: '#00e6cc', fontSize: '1.4rem', fontWeight: '900', 
-            letterSpacing: '1px', textTransform: 'uppercase', 
-            fontFamily: '"Courier New", Courier, monospace', textShadow: '0 0 8px rgba(0, 230, 204, 0.4)',
-            lineHeight: '1.2'
+        <div style={{ 
+          display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px', 
+          paddingBottom: '20px', borderBottom: '1px solid #334155' 
+        }}>
+          <div style={{ 
+            backgroundColor: '#3b82f6', color: 'white', width: '36px', height: '36px', 
+            borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontWeight: 'bold', fontSize: '1.2rem', boxShadow: '0 4px 10px rgba(59, 130, 246, 0.3)'
           }}>
-            RickyGPT<br/>
-            <span style={{ color: '#e2e8f0', fontSize: '0.85rem', letterSpacing: '2px' }}>MATH & PHYSICS AGENT</span>
-          </h2>
+            R
+          </div>
+          <div>
+            <h2 style={{ margin: 0, color: '#f8fafc', fontSize: '1.25rem', fontWeight: '700', letterSpacing: '-0.5px' }}>
+              RickyGPT
+            </h2>
+            <div style={{ color: '#94a3b8', fontSize: '0.8rem', fontWeight: '500', letterSpacing: '0.5px', textTransform: 'uppercase' }}>
+              Simulation Engine
+            </div>
+          </div>
         </div>
         
         {/* Chat History */}
@@ -113,15 +122,17 @@ function App() {
               alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start',
               maxWidth: '85%', display: 'flex', flexDirection: 'column', gap: '4px'
             }}>
-              <span style={{ fontSize: '0.75rem', color: '#64748b', marginLeft: '4px', textAlign: msg.role === 'user' ? 'right' : 'left' }}>
+              <span style={{ fontSize: '0.75rem', color: '#64748b', marginLeft: '4px', textAlign: msg.role === 'user' ? 'right' : 'left', fontWeight: '500' }}>
                 {msg.role === 'user' ? 'You' : 'RickyGPT'}
               </span>
               <div style={{ 
-                backgroundColor: msg.role === 'user' ? '#00e6cc' : 'rgba(30, 41, 59, 0.8)', 
-                color: msg.role === 'user' ? '#020617' : '#e2e8f0',
-                padding: '12px 16px', borderRadius: msg.role === 'user' ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
+                backgroundColor: msg.role === 'user' ? '#3b82f6' : '#334155', 
+                color: '#f8fafc',
+                padding: '12px 16px', 
+                borderRadius: msg.role === 'user' ? '12px 12px 4px 12px' : '12px 12px 12px 4px',
                 fontSize: '0.95rem', lineHeight: '1.5', whiteSpace: 'pre-wrap',
-                boxShadow: msg.role === 'user' ? '0 4px 12px rgba(0, 230, 204, 0.2)' : '0 4px 12px rgba(0,0,0,0.2)'
+                boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                border: msg.role === 'user' ? 'none' : '1px solid #475569'
               }}>
                 {msg.content}
               </div>
@@ -129,9 +140,10 @@ function App() {
           ))}
           
           {isLoading && (
-            <div style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 16px', backgroundColor: 'rgba(30, 41, 59, 0.5)', borderRadius: '16px 16px 16px 4px' }}>
-              <div style={{ width: '8px', height: '8px', backgroundColor: '#00e6cc', borderRadius: '50%', animation: 'pulse 1s infinite' }} />
-              <span style={{ color: '#00e6cc', fontStyle: 'italic', fontSize: '0.9rem' }}>Crunching physics...</span>
+            <div style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 16px', backgroundColor: '#334155', borderRadius: '12px 12px 12px 4px', border: '1px solid #475569' }}>
+              <div style={{ width: '6px', height: '6px', backgroundColor: '#3b82f6', borderRadius: '50%', animation: 'bounce 1.4s infinite ease-in-out both' }} />
+              <div style={{ width: '6px', height: '6px', backgroundColor: '#3b82f6', borderRadius: '50%', animation: 'bounce 1.4s infinite ease-in-out both', animationDelay: '-0.32s' }} />
+              <div style={{ width: '6px', height: '6px', backgroundColor: '#3b82f6', borderRadius: '50%', animation: 'bounce 1.4s infinite ease-in-out both', animationDelay: '-0.16s' }} />
             </div>
           )}
         </div>
@@ -142,22 +154,25 @@ function App() {
             type="text"
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
-            placeholder="Simulate a double pendulum..."
+            placeholder="Define simulation parameters..."
             style={{ 
-              flexGrow: 1, padding: '14px 16px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', 
-              backgroundColor: 'rgba(15, 23, 42, 0.6)', color: 'white', fontSize: '0.95rem', outline: 'none'
+              flexGrow: 1, padding: '12px 16px', borderRadius: '8px', 
+              border: '1px solid #475569', backgroundColor: '#0f172a', 
+              color: '#f8fafc', fontSize: '0.95rem', outline: 'none',
+              transition: 'border-color 0.2s'
             }}
-            onFocus={(e) => e.target.style.borderColor = '#00e6cc'}
-            onBlur={(e) => e.target.style.borderColor = 'rgba(255,255,255,0.1)'}
+            onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
+            onBlur={(e) => e.target.style.borderColor = '#475569'}
           />
           <button 
             type="submit" 
             disabled={isLoading || !prompt.trim()} 
             style={{ 
               padding: '0 20px', cursor: (isLoading || !prompt.trim()) ? 'not-allowed' : 'pointer', 
-              backgroundColor: (isLoading || !prompt.trim()) ? '#334155' : '#00e6cc', 
-              color: '#020617', border: 'none', borderRadius: '12px', fontWeight: 'bold',
-              transition: 'all 0.2s ease', opacity: (isLoading || !prompt.trim()) ? 0.5 : 1
+              backgroundColor: (isLoading || !prompt.trim()) ? '#475569' : '#3b82f6', 
+              color: '#ffffff', border: 'none', borderRadius: '8px', fontWeight: '600',
+              transition: 'background-color 0.2s',
+              boxShadow: (isLoading || !prompt.trim()) ? 'none' : '0 2px 4px rgba(59, 130, 246, 0.3)'
             }}
           >
             Run
@@ -175,27 +190,27 @@ function App() {
                  simData.x1 && simData.x2 ? [
                    {
                      x: simData.x2.slice(0, currentFrame), y: simData.y2.slice(0, currentFrame),
-                     type: 'scatter', mode: 'lines', line: { color: 'rgba(0, 230, 204, 0.3)', width: 2 }
+                     type: 'scatter', mode: 'lines', line: { color: 'rgba(59, 130, 246, 0.4)', width: 2 }
                    },
                    {
                      x: [0, simData.x1[currentFrame - 1 || 0], simData.x2[currentFrame - 1 || 0]],
                      y: [0, simData.y1[currentFrame - 1 || 0], simData.y2[currentFrame - 1 || 0]],
                      type: 'scatter', mode: 'lines+markers',
-                     line: { color: '#ffffff', width: 3 }, marker: { color: '#00e6cc', size: 10, line: {color: '#ffffff', width: 2} }
+                     line: { color: '#94a3b8', width: 2 }, marker: { color: '#3b82f6', size: 8, line: {color: '#ffffff', width: 2} }
                    }
                  ] 
                  : simData.x && simData.y ? [
                    {
                      x: simData.x.slice(0, currentFrame), y: simData.y.slice(0, currentFrame), z: simData.z ? simData.z.slice(0, currentFrame) : null,
-                     type: simData.z ? 'scatter3d' : 'scatter', mode: 'lines', line: { color: '#00e6cc', width: 3 }
+                     type: simData.z ? 'scatter3d' : 'scatter', mode: 'lines', line: { color: '#3b82f6', width: 2 }
                    }
                  ] : []
                }
                layout={{
-                 paper_bgcolor: 'transparent', plot_bgcolor: 'transparent', font: { color: '#64748b' },
+                 paper_bgcolor: 'transparent', plot_bgcolor: 'transparent', font: { color: '#94a3b8', family: 'Inter, sans-serif' },
                  margin: { t: 40, r: 40, b: 40, l: 40 }, autosize: true,
-                 xaxis: { showgrid: true, gridcolor: 'rgba(255,255,255,0.05)', zerolinecolor: 'rgba(255,255,255,0.1)' },
-                 yaxis: { scaleanchor: "x", scaleratio: 1, showgrid: true, gridcolor: 'rgba(255,255,255,0.05)', zerolinecolor: 'rgba(255,255,255,0.1)' },
+                 xaxis: { showgrid: true, gridcolor: '#1e293b', zerolinecolor: '#334155' },
+                 yaxis: { scaleanchor: "x", scaleratio: 1, showgrid: true, gridcolor: '#1e293b', zerolinecolor: '#334155' },
                  showlegend: false
                }}
                style={{ width: '100%', height: '100%' }}
@@ -204,9 +219,9 @@ function App() {
              {/* Floating Control Deck */}
              <div style={{ 
                position: 'absolute', bottom: '40px', left: '50%', transform: 'translateX(-50%)',
-               backgroundColor: 'rgba(15, 23, 42, 0.8)', backdropFilter: 'blur(10px)',
-               padding: '12px 24px', borderRadius: '30px', border: '1px solid rgba(255,255,255,0.1)',
-               display: 'flex', alignItems: 'center', gap: '20px', boxShadow: '0 10px 30px rgba(0,0,0,0.5)'
+               backgroundColor: '#1e293b',
+               padding: '12px 24px', borderRadius: '12px', border: '1px solid #334155',
+               display: 'flex', alignItems: 'center', gap: '20px', boxShadow: '0 10px 25px rgba(0,0,0,0.3)'
              }}>
                <button 
                  onClick={() => {
@@ -214,65 +229,74 @@ function App() {
                    setIsAnimating(!isAnimating);
                  }}
                  style={{ 
-                   padding: '8px 20px', backgroundColor: '#00e6cc', color: '#020617', 
-                   border: 'none', borderRadius: '20px', fontWeight: 'bold', cursor: 'pointer',
-                   display: 'flex', alignItems: 'center', gap: '8px', minWidth: '100px', justifyContent: 'center'
+                   padding: '8px 20px', backgroundColor: '#3b82f6', color: '#ffffff', 
+                   border: 'none', borderRadius: '6px', fontWeight: '600', cursor: 'pointer',
+                   display: 'flex', alignItems: 'center', gap: '8px', minWidth: '100px', justifyContent: 'center',
+                   transition: 'background-color 0.2s'
                  }}
+                 onMouseOver={(e) => { e.target.style.backgroundColor = '#2563eb' }}
+                 onMouseOut={(e) => { e.target.style.backgroundColor = '#3b82f6' }}
                >
-                 {isAnimating ? "⏸ Pause" : currentFrame >= maxFrames ? "🔄 Replay" : "▶️ Play"}
+                 {isAnimating ? "Pause" : currentFrame >= maxFrames ? "Replay" : "Play"}
                </button>
 
-               {/* NEW: Frame Slider */}
+               {/* Frame Slider */}
                <input 
                  type="range" 
                  min="1" 
                  max={maxFrames || 1} 
                  value={currentFrame || 1}
                  onChange={(e) => {
-                   setIsAnimating(false); // Stop playing if they manually drag it
+                   setIsAnimating(false);
                    setCurrentFrame(parseInt(e.target.value));
                  }}
-                 style={{ width: '150px', cursor: 'pointer', accentColor: '#00e6cc' }}
+                 style={{ width: '200px', cursor: 'pointer', accentColor: '#3b82f6' }}
                />
                
                <span style={{ fontSize: '0.85rem', color: '#94a3b8', fontFamily: 'monospace', minWidth: '80px', textAlign: 'right' }}>
                  {currentFrame} / {maxFrames}
                </span>
                
-               <div style={{ width: '1px', height: '24px', backgroundColor: 'rgba(255,255,255,0.2)' }} />
+               <div style={{ width: '1px', height: '24px', backgroundColor: '#334155' }} />
 
                <button 
                  onClick={handleDownload}
-                 title="Download Raw Math Data"
+                 title="Export Data"
                  style={{ 
-                   padding: '8px 16px', backgroundColor: 'transparent', color: '#00e6cc', 
-                   border: '1px solid #00e6cc', borderRadius: '20px', fontWeight: 'bold', cursor: 'pointer',
-                   display: 'flex', alignItems: 'center', gap: '6px', transition: 'all 0.2s'
+                   padding: '8px 16px', backgroundColor: 'transparent', color: '#cbd5e1', 
+                   border: '1px solid #475569', borderRadius: '6px', fontWeight: '500', cursor: 'pointer',
+                   display: 'flex', alignItems: 'center', gap: '6px', transition: 'all 0.2s', fontSize: '0.9rem'
                  }}
-                 onMouseOver={(e) => { e.target.style.backgroundColor = 'rgba(0, 230, 204, 0.1)' }}
-                 onMouseOut={(e) => { e.target.style.backgroundColor = 'transparent' }}
+                 onMouseOver={(e) => { e.target.style.backgroundColor = '#334155'; e.target.style.color = '#ffffff'; }}
+                 onMouseOut={(e) => { e.target.style.backgroundColor = 'transparent'; e.target.style.color = '#cbd5e1'; }}
                >
-                 💾 JSON
+                 Export JSON
                </button>
              </div>
            </>
         ) : simData ? (
-           <div style={{ color: '#ef4444', padding: '24px', backgroundColor: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '12px', maxWidth: '80%' }}>
-             <h3 style={{ marginTop: 0 }}>🚨 Data Formatting Error</h3>
-             <pre style={{ overflowX: 'auto', fontSize: '0.85rem' }}>{JSON.stringify(simData, null, 2)}</pre>
+           <div style={{ color: '#ef4444', padding: '24px', backgroundColor: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)', borderRadius: '8px', maxWidth: '80%' }}>
+             <h3 style={{ marginTop: 0, fontSize: '1.1rem', fontWeight: '600' }}>Data Formatting Error</h3>
+             <pre style={{ overflowX: 'auto', fontSize: '0.85rem', color: '#f8fafc' }}>{JSON.stringify(simData, null, 2)}</pre>
            </div>
         ) : (
-           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px', opacity: 0.5 }}>
-             <div style={{ fontSize: '48px' }}>🛰️</div>
-             <div style={{ fontSize: '1.2rem', letterSpacing: '1px' }}>Awaiting coordinates...</div>
+           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px', color: '#475569' }}>
+             <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"></path>
+                <path d="M2 12h20"></path>
+             </svg>
+             <div style={{ fontSize: '1.1rem', fontWeight: '500' }}>Awaiting simulation parameters</div>
            </div>
         )}
       </div>
       
       {/* Global CSS for Animations */}
       <style>{`
-        @keyframes pulse { 0% { opacity: 0.5; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1.2); } 100% { opacity: 0.5; transform: scale(0.8); } }
-        @keyframes spin { 100% { transform: rotate(360deg); } }
+        @keyframes bounce {
+          0%, 80%, 100% { transform: scale(0); }
+          40% { transform: scale(1); }
+        }
       `}</style>
     </div>
   );
