@@ -7,15 +7,27 @@ from dotenv import load_dotenv
 load_dotenv()
 
 def create_rickygpt():
-    # 1. Initialize the Brain (State-of-the-art Flash model)
-    llm = ChatGoogleGenerativeAI(
-        model="gemini-2.5-flash-lite",
-        temperature=0.1 # Low temperature for precision
+    # 1. Initialize the Primary Brain (3.1 Preview with heavy retries)
+    llm_primary = ChatGoogleGenerativeAI(
+        model="gemini-3.1-flash-lite-preview",
+        temperature=0.1, # Low temperature for precision
+        max_retries=10,  # Try up to 10 times if the preview server is busy
+        timeout=60       # Give it 60 seconds to respond before giving up
     )
+    
+    # 2. Initialize the Backup Brain (Gemma 3 with massive daily limits)
+    llm_backup = ChatGoogleGenerativeAI(
+        model="gemma-3-27b",
+        temperature=0.1 
+    )
+    
+    # 3. Chain them together! If primary fails, backup takes over seamlessly.
+    llm_chain = llm_primary.with_fallbacks([llm_backup])
 
-    # 2. Load the Hands
+    # 4. Load the Hands
     tools = [execute_physics_code]
-    # 3. Create the System Prompt (RickyGPT's core instructions)
+    
+    # 5. Create the System Prompt (RickyGPT's core instructions)
     system_prompt = (
     """
 You are RickyGPT, a genius AI physicist and pure data engine. 
@@ -38,8 +50,7 @@ CRITICAL RULES:
     """
     )
     
-
-    # 4. Wire it all together using LangGraph (The modern way!)
-    agent_executor = create_react_agent(llm, tools, prompt=system_prompt)
+    # 6. Wire it all together using LangGraph with our new chained brain
+    agent_executor = create_react_agent(llm_chain, tools, prompt=system_prompt)
 
     return agent_executor
