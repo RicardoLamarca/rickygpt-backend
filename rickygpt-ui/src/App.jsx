@@ -325,23 +325,72 @@ function App() {
       
       {/* Global CSS for Layout & Animations */}
       <style>{`
+        /* Global Reset to fix the "few pixels" overflow */
+        * {
+          box-sizing: border-box;
+        }
+        body, html {
+          margin: 0;
+          padding: 0;
+          width: 100%;
+          height: 100%;
+          overflow: hidden;
+        }
+
         /* Desktop Layout (Default) */
-        .app-container { display: flex; flex-direction: row; height: 100vh; width: 100vw; }
-        .chat-panel { width: 400px; border-right: 1px solid #334155; height: 100vh; }
-        .viz-panel { flex-grow: 1; height: 100vh; }
-        .control-deck { position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 24px; width: max-content; }
+        .app-container { 
+          display: flex; 
+          flex-direction: row; 
+          height: 100vh; /* Fallback for older browsers */
+          height: 100dvh; /* Dynamic height fixes mobile URL bar clipping */
+          width: 100%; 
+        }
+        .chat-panel { 
+          width: 400px; 
+          border-right: 1px solid #334155; 
+          height: 100%; 
+        }
+        .viz-panel { 
+          flex-grow: 1; 
+          height: 100%; 
+        }
+        .control-deck { 
+          position: absolute; 
+          bottom: 40px; 
+          left: 50%; 
+          transform: translateX(-50%); 
+          display: flex; 
+          align-items: center; 
+          gap: 24px; 
+          width: max-content; 
+          max-width: 95%; /* Prevents horizontal overflow on smaller desktop windows */
+          z-index: 50;
+        }
         
         /* Mobile Layout (Phones & small tablets) */
         @media (max-width: 800px) {
           .app-container { flex-direction: column; }
-          .chat-panel { width: 100%; height: 45vh; border-right: none; border-bottom: 2px solid #334155; flex-shrink: 0; }
-          .viz-panel { height: 55vh; width: 100%; }
+          .chat-panel { 
+            width: 100%; 
+            height: 45dvh; 
+            border-right: none; 
+            border-bottom: 2px solid #334155; 
+            flex-shrink: 0; 
+          }
+          .viz-panel { 
+            height: 55dvh; 
+            width: 100%; 
+          }
           .control-deck { 
-            bottom: 10px; width: 95%; max-width: 95%; gap: 10px; 
-            flex-wrap: wrap; justify-content: space-between; padding: 12px !important;
+            bottom: 16px; 
+            width: 92%; 
+            gap: 12px; 
+            flex-wrap: wrap; 
+            justify-content: center; 
+            padding: 12px !important;
           }
           .control-divider { display: none; }
-          .timeline-text { display: none; } /* Hide the text fraction on tiny screens to save space */
+          .timeline-text { display: none; }
         }
 
         @keyframes bounce {
