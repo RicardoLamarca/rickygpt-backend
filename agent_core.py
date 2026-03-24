@@ -9,7 +9,7 @@ load_dotenv()
 def create_rickygpt():
     # 1. Initialize the Brain (State-of-the-art Flash model)
     llm = ChatGoogleGenerativeAI(
-        model="gemini-3.1-flash-lite",
+        model="gemini-2.5-flash-lite",
         temperature=0.1 # Low temperature for precision
     )
 
