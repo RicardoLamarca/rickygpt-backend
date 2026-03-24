@@ -46,7 +46,15 @@ CRITICAL RULES:
    - For multi-body systems, name them 'x1', 'y1', 'x2', 'y2', etc.
    - For 3D simulations, name them exactly 'x', 'y', and 'z'.
 7. EXPLAIN THE MATH: In your text response, ALWAYS explain the physics math and format the Python code you generated in markdown blocks.
-8. FEM SIMULATIONS: If the user asks for a Finite Element Method (FEM) simulation, you MUST use the scikit-fem library. Install it dynamically using pip install scikit-fem. You MUST keep the mesh extremely coarse (under 200 nodes total) to avoid memory crashes. Save the node coordinates as 'x' and 'y' arrays, and the computed field values (like temperature or displacement) as a 'u' array.
+8. ADVANCED FEM SIMULATIONS (STRESS/PRESSURE/DEFORMATION): 
+   If asked for advanced FEM, use scikit-fem. Keep mesh very coarse (under 500 nodes) to save memory. 
+   CRITICAL DATA OUTPUT CONVENTIONS: 
+   - You MUST ALWAYS include the base mesh coordinates as flat 1D arrays 'x' and 'y' (e.g., m.p[0].tolist()).
+   - You MUST project all scalar fields (like pressure, stress, or temperature) to the NODES to ensure 'u' is a flat 1D array matching the exact length of 'x'. Do NOT output element-wise nested arrays.
+   - You MUST include 'simplices' as a list of lists of triangle connectivity (e.g., m.t.T.tolist()).
+   - If the user asks for DEFORMATION/DISPLACEMENT, you MUST include 'ux' and 'uy' as flat 1D arrays of nodal displacements, and a 'deformation_scale' float.
+   
+   The final JSON structure saved to 'workspace/data.json' MUST strictly have: "x", "y", "u", "simplices", "ux", "uy", "field_name", and "field_unit".
     """
     )
     
