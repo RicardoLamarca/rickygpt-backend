@@ -12,7 +12,7 @@ function App() {
   const [currentFrame, setCurrentFrame] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   
-  // NEW: Speed state (1 = normal, 0.5 = slow, 2 = fast)
+  // Speed state for our new Speed Glider (defaults to 1x)
   const [speed, setSpeed] = useState(1);
 
   const maxFrames = simData?.x ? simData.x.length : (simData?.x1 ? simData.x1.length : 0);
@@ -67,7 +67,7 @@ function App() {
   useEffect(() => {
     let interval;
     if (isAnimating && maxFrames > 0) {
-      // NEW: Divide the base 30ms interval by the speed multiplier
+      // The interval dynamically updates based on the speed glider
       interval = setInterval(() => {
         setCurrentFrame((prev) => {
           if (prev >= maxFrames) {
@@ -79,7 +79,7 @@ function App() {
       }, 30 / speed); 
     }
     return () => clearInterval(interval);
-  }, [isAnimating, maxFrames, speed]); // Added speed to dependency array
+  }, [isAnimating, maxFrames, speed]);
 
   return (
     <div style={{ 
@@ -225,8 +225,10 @@ function App() {
                position: 'absolute', bottom: '40px', left: '50%', transform: 'translateX(-50%)',
                backgroundColor: '#1e293b',
                padding: '12px 24px', borderRadius: '12px', border: '1px solid #334155',
-               display: 'flex', alignItems: 'center', gap: '20px', boxShadow: '0 10px 25px rgba(0,0,0,0.3)'
+               display: 'flex', alignItems: 'center', gap: '24px', boxShadow: '0 10px 25px rgba(0,0,0,0.3)'
              }}>
+               
+               {/* Play/Pause Button */}
                <button 
                  onClick={() => {
                    if (currentFrame >= maxFrames) setCurrentFrame(1);
@@ -235,7 +237,7 @@ function App() {
                  style={{ 
                    padding: '8px 20px', backgroundColor: '#3b82f6', color: '#ffffff', 
                    border: 'none', borderRadius: '6px', fontWeight: '600', cursor: 'pointer',
-                   display: 'flex', alignItems: 'center', gap: '8px', minWidth: '100px', justifyContent: 'center',
+                   display: 'flex', alignItems: 'center', gap: '8px', minWidth: '90px', justifyContent: 'center',
                    transition: 'background-color 0.2s'
                  }}
                  onMouseOver={(e) => { e.target.style.backgroundColor = '#2563eb' }}
@@ -244,41 +246,50 @@ function App() {
                  {isAnimating ? "Pause" : currentFrame >= maxFrames ? "Replay" : "Play"}
                </button>
 
-               {/* NEW: Speed Toggle Button */}
-               <button 
-                 onClick={() => setSpeed(s => s === 1 ? 0.5 : s === 0.5 ? 2 : 1)}
-                 title="Playback Speed"
-                 style={{ 
-                   padding: '8px 12px', backgroundColor: 'transparent', color: '#cbd5e1', 
-                   border: '1px solid #475569', borderRadius: '6px', fontWeight: '500', cursor: 'pointer',
-                   display: 'flex', alignItems: 'center', transition: 'all 0.2s', fontSize: '0.85rem',
-                   minWidth: '45px', justifyContent: 'center'
-                 }}
-                 onMouseOver={(e) => { e.target.style.backgroundColor = '#334155'; e.target.style.color = '#ffffff'; }}
-                 onMouseOut={(e) => { e.target.style.backgroundColor = 'transparent'; e.target.style.color = '#cbd5e1'; }}
-               >
-                 {speed}x
-               </button>
+               {/* NEW: Speed Glider Container */}
+               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                 <span style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                   Speed: {speed}x
+                 </span>
+                 <input 
+                   type="range" 
+                   min="0.1" 
+                   max="3" 
+                   step="0.1"
+                   value={speed}
+                   onChange={(e) => setSpeed(parseFloat(e.target.value))}
+                   style={{ width: '100px', cursor: 'pointer', accentColor: '#10b981' }} // Using a green accent to differentiate from the timeline slider
+                 />
+               </div>
 
-               {/* Frame Slider */}
-               <input 
-                 type="range" 
-                 min="1" 
-                 max={maxFrames || 1} 
-                 value={currentFrame || 1}
-                 onChange={(e) => {
-                   setIsAnimating(false);
-                   setCurrentFrame(parseInt(e.target.value));
-                 }}
-                 style={{ width: '200px', cursor: 'pointer', accentColor: '#3b82f6' }}
-               />
-               
-               <span style={{ fontSize: '0.85rem', color: '#94a3b8', fontFamily: 'monospace', minWidth: '80px', textAlign: 'right' }}>
-                 {currentFrame} / {maxFrames}
-               </span>
-               
-               <div style={{ width: '1px', height: '24px', backgroundColor: '#334155' }} />
+               <div style={{ width: '1px', height: '32px', backgroundColor: '#334155' }} />
 
+               {/* Timeline Frame Slider Container */}
+               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                 <span style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                   Timeline
+                 </span>
+                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                   <input 
+                     type="range" 
+                     min="1" 
+                     max={maxFrames || 1} 
+                     value={currentFrame || 1}
+                     onChange={(e) => {
+                       setIsAnimating(false);
+                       setCurrentFrame(parseInt(e.target.value));
+                     }}
+                     style={{ width: '150px', cursor: 'pointer', accentColor: '#3b82f6' }}
+                   />
+                   <span style={{ fontSize: '0.8rem', color: '#cbd5e1', fontFamily: 'monospace', minWidth: '70px', textAlign: 'right' }}>
+                     {currentFrame}/{maxFrames}
+                   </span>
+                 </div>
+               </div>
+               
+               <div style={{ width: '1px', height: '32px', backgroundColor: '#334155' }} />
+
+               {/* Export Button */}
                <button 
                  onClick={handleDownload}
                  title="Export Data"
