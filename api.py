@@ -1,33 +1,29 @@
+import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-import os
-import json
-from agent_core import create_rickygpt
+# (Keep your other imports like pydantic, json, etc. here)
 
 app = FastAPI()
 
-# The VIP Bouncer
+# 1. FORCE THE COMMUNICATION GATES OPEN (CORS)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allows all origins (you can restrict this to your Vercel URL later for security)
+    allow_origins=["*"],  # This allows ANY frontend to talk to this backend
     allow_credentials=True,
-    allow_methods=["*"],  # Allows all methods (POST, GET, etc.)
-    allow_headers=["*"],  # Allows all headers
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
-# Initialize the agent
-agent = create_rickygpt()
-
-class ChatRequest(BaseModel):
-    prompt: str
-
+# 2. PREVENT THE SERVER FROM CRASHING WHEN IT WAKES UP
 @app.post("/simulate")
-def run_simulation(request: ChatRequest):
+def run_simulation(request: ChatRequest):  # Adjust "ChatRequest" if yours is named differently
     workspace_dir = "workspace"
+    
+    # THIS IS THE MAGIC LINE: It builds the folder if Render deleted it
+    os.makedirs(workspace_dir, exist_ok=True)
+    
     data_file = os.path.join(workspace_dir, "data.json")
     
-    # Delete old data so we don't send the wrong physics numbers
     if os.path.exists(data_file):
         os.remove(data_file)
         
