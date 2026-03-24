@@ -5,7 +5,7 @@ const Plot = PlotlyPlot.default || PlotlyPlot;
 function App() {
   const [prompt, setPrompt] = useState("");
   const [chatHistory, setChatHistory] = useState([
-    { role: 'ai', content: "System Online. Physics engine initialized. How can I assist with your simulations today?" }
+    { role: 'ai', content: "System Online. Physics engine initialized. Responsive mode active. How can I assist with your simulations today?" }
   ]);
   const [simData, setSimData] = useState(null);
   const [isAnimating, setIsAnimating] = useState(false);
@@ -27,6 +27,7 @@ function App() {
     setIsLoading(true);
 
     try {
+      // Restored your exact original Render URL
       const response = await fetch('https://rickygpt.onrender.com/simulate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -82,18 +83,16 @@ function App() {
   }, [isAnimating, maxFrames, speed]);
 
   return (
-    <div style={{ 
-      display: 'flex', height: '100vh', width: '100vw', 
+    <div className="app-container" style={{ 
       fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', 
       backgroundColor: '#0f172a', 
       color: '#f8fafc', margin: 0, overflow: 'hidden'
     }}>
       
       {/* LEFT PANEL: Chat Interface */}
-      <div style={{ 
-        width: '400px', display: 'flex', flexDirection: 'column', 
-        backgroundColor: '#1e293b', 
-        borderRight: '1px solid #334155', padding: '24px', zIndex: 10,
+      <div className="chat-panel" style={{ 
+        display: 'flex', flexDirection: 'column', 
+        backgroundColor: '#1e293b', padding: '24px', zIndex: 10,
         boxShadow: '4px 0 24px rgba(0,0,0,0.2)'
       }}>
         
@@ -102,10 +101,12 @@ function App() {
           display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px', 
           paddingBottom: '20px', borderBottom: '1px solid #334155' 
         }}>
+          {/* Restored the glowing box-shadow on the logo */}
           <div style={{ 
             backgroundColor: '#3b82f6', color: 'white', width: '36px', height: '36px', 
             borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontWeight: 'bold', fontSize: '1.2rem', boxShadow: '0 4px 10px rgba(59, 130, 246, 0.3)'
+            fontWeight: 'bold', fontSize: '1.2rem', boxShadow: '0 4px 10px rgba(59, 130, 246, 0.3)',
+            flexShrink: 0
           }}>
             R
           </div>
@@ -154,6 +155,7 @@ function App() {
 
         {/* Input Form */}
         <form onSubmit={handleSubmit} style={{ display: 'flex', gap: '10px' }}>
+          {/* Restored the focus and blur glowing border effects */}
           <input
             type="text"
             value={prompt}
@@ -163,11 +165,12 @@ function App() {
               flexGrow: 1, padding: '12px 16px', borderRadius: '8px', 
               border: '1px solid #475569', backgroundColor: '#0f172a', 
               color: '#f8fafc', fontSize: '0.95rem', outline: 'none',
-              transition: 'border-color 0.2s'
+              transition: 'border-color 0.2s', width: '100%'
             }}
             onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
             onBlur={(e) => e.target.style.borderColor = '#475569'}
           />
+          {/* Restored the button hover transitions and box shadow */}
           <button 
             type="submit" 
             disabled={isLoading || !prompt.trim()} 
@@ -185,7 +188,7 @@ function App() {
       </div>
 
       {/* RIGHT PANEL: Interactive WebGL Physics Visualizer */}
-      <div style={{ flexGrow: 1, position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div className="viz-panel" style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         
         {maxFrames > 0 ? (
            <>
@@ -218,17 +221,17 @@ function App() {
                  showlegend: false
                }}
                style={{ width: '100%', height: '100%' }}
+               useResizeHandler={true}
              />
              
              {/* Floating Control Deck */}
-             <div style={{ 
-               position: 'absolute', bottom: '40px', left: '50%', transform: 'translateX(-50%)',
+             <div className="control-deck" style={{ 
                backgroundColor: '#1e293b',
                padding: '12px 24px', borderRadius: '12px', border: '1px solid #334155',
-               display: 'flex', alignItems: 'center', gap: '24px', boxShadow: '0 10px 25px rgba(0,0,0,0.3)'
+               boxShadow: '0 10px 25px rgba(0,0,0,0.3)'
              }}>
                
-               {/* Play/Pause Button */}
+               {/* Restored Play/Pause hover effects */}
                <button 
                  onClick={() => {
                    if (currentFrame >= maxFrames) setCurrentFrame(1);
@@ -246,7 +249,6 @@ function App() {
                  {isAnimating ? "Pause" : currentFrame >= maxFrames ? "Replay" : "Play"}
                </button>
 
-               {/* NEW: Speed Glider Container */}
                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
                  <span style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                    Speed: {speed}x
@@ -258,18 +260,17 @@ function App() {
                    step="0.1"
                    value={speed}
                    onChange={(e) => setSpeed(parseFloat(e.target.value))}
-                   style={{ width: '100px', cursor: 'pointer', accentColor: '#10b981' }} // Using a green accent to differentiate from the timeline slider
+                   style={{ width: '100px', cursor: 'pointer', accentColor: '#10b981' }} 
                  />
                </div>
 
-               <div style={{ width: '1px', height: '32px', backgroundColor: '#334155' }} />
+               <div className="control-divider" style={{ width: '1px', height: '32px', backgroundColor: '#334155' }} />
 
-               {/* Timeline Frame Slider Container */}
-               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', flexGrow: 1 }}>
                  <span style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                    Timeline
                  </span>
-                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', width: '100%' }}>
                    <input 
                      type="range" 
                      min="1" 
@@ -279,17 +280,17 @@ function App() {
                        setIsAnimating(false);
                        setCurrentFrame(parseInt(e.target.value));
                      }}
-                     style={{ width: '150px', cursor: 'pointer', accentColor: '#3b82f6' }}
+                     style={{ flexGrow: 1, minWidth: '80px', cursor: 'pointer', accentColor: '#3b82f6' }}
                    />
-                   <span style={{ fontSize: '0.8rem', color: '#cbd5e1', fontFamily: 'monospace', minWidth: '70px', textAlign: 'right' }}>
+                   <span className="timeline-text" style={{ fontSize: '0.8rem', color: '#cbd5e1', fontFamily: 'monospace', minWidth: '70px', textAlign: 'right' }}>
                      {currentFrame}/{maxFrames}
                    </span>
                  </div>
                </div>
                
-               <div style={{ width: '1px', height: '32px', backgroundColor: '#334155' }} />
+               <div className="control-divider" style={{ width: '1px', height: '32px', backgroundColor: '#334155' }} />
 
-               {/* Export Button */}
+               {/* Restored Export button hover colors and titles */}
                <button 
                  onClick={handleDownload}
                  title="Export Data"
@@ -322,8 +323,27 @@ function App() {
         )}
       </div>
       
-      {/* Global CSS for Animations */}
+      {/* Global CSS for Layout & Animations */}
       <style>{`
+        /* Desktop Layout (Default) */
+        .app-container { display: flex; flex-direction: row; height: 100vh; width: 100vw; }
+        .chat-panel { width: 400px; border-right: 1px solid #334155; height: 100vh; }
+        .viz-panel { flex-grow: 1; height: 100vh; }
+        .control-deck { position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 24px; width: max-content; }
+        
+        /* Mobile Layout (Phones & small tablets) */
+        @media (max-width: 800px) {
+          .app-container { flex-direction: column; }
+          .chat-panel { width: 100%; height: 45vh; border-right: none; border-bottom: 2px solid #334155; flex-shrink: 0; }
+          .viz-panel { height: 55vh; width: 100%; }
+          .control-deck { 
+            bottom: 10px; width: 95%; max-width: 95%; gap: 10px; 
+            flex-wrap: wrap; justify-content: space-between; padding: 12px !important;
+          }
+          .control-divider { display: none; }
+          .timeline-text { display: none; } /* Hide the text fraction on tiny screens to save space */
+        }
+
         @keyframes bounce {
           0%, 80%, 100% { transform: scale(0); }
           40% { transform: scale(1); }
