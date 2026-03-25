@@ -191,12 +191,62 @@ function App() {
       {/* RIGHT PANEL: Interactive WebGL Physics Visualizer */}
       <div className="viz-panel" style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         
-        {simData?.simplices ? (
-           /* 1. NEW: IF IT IS AN FEM SIMULATION, USE OUR NEW COMPONENT */
-           <PhysicsVisualizer data={simData} />
+        {simData?.u ? (
+           /* 1. FEM HEATMAP / COLOR GRID */
+           /* Triggered anytime a field variable 'u' is present */
+           <Plot
+             data={[
+               simData.simplices ? {
+                 // If the AI gives us triangles (simplices), draw a beautiful solid colored mesh
+                 type: 'mesh3d',
+                 x: simData.x,
+                 y: simData.y,
+                 z: simData.x.map(() => 0), // Flatten to 2D
+                 i: simData.simplices.map(t => t[0]),
+                 j: simData.simplices.map(t => t[1]),
+                 k: simData.simplices.map(t => t[2]),
+                 intensity: simData.u,
+                 colorscale: 'Jet', 
+                 showscale: true,
+                 colorbar: { title: 'Value (u)', titlefont: { color: '#94a3b8' }, tickfont: { color: '#94a3b8' } },
+                 hoverinfo: 'x+y+intensity'
+               } : {
+                 // Fallback: If AI forgets 'simplices', plot the nodes as colored dots instead of a zig-zag line!
+                 x: simData.x,
+                 y: simData.y,
+                 mode: 'markers',
+                 type: 'scatter',
+                 marker: {
+                   color: simData.u,
+                   colorscale: 'Jet',
+                   size: 12,
+                   symbol: 'square',
+                   showscale: true,
+                   colorbar: { title: 'Value (u)', titlefont: { color: '#94a3b8' }, tickfont: { color: '#94a3b8' } }
+                 }
+               }
+             ]}
+             layout={{
+               paper_bgcolor: 'transparent', plot_bgcolor: 'transparent', font: { color: '#94a3b8', family: 'Inter, sans-serif' },
+               margin: { t: 40, r: 40, b: 40, l: 40 }, autosize: true,
+               scene: { 
+                 // Force the 3D mesh to look like a perfectly flat 2D Heatmap
+                 aspectmode: 'data',
+                 camera: { eye: { x: 0, y: 0, z: 2.2 }, up: { x: 0, y: 1, z: 0 }, projection: { type: 'orthographic' } },
+                 xaxis: { showgrid: false, zeroline: false, showticklabels: false, title: '' },
+                 yaxis: { showgrid: false, zeroline: false, showticklabels: false, title: '' },
+                 zaxis: { showgrid: false, zeroline: false, showticklabels: false, title: '' }
+               },
+               // Standard 2D axes for the fallback scatter plot
+               xaxis: { scaleanchor: "y", scaleratio: 1, showgrid: true, gridcolor: '#1e293b', zerolinecolor: '#334155' },
+               yaxis: { showgrid: true, gridcolor: '#1e293b', zerolinecolor: '#334155' }
+             }}
+             style={{ width: '100%', height: '100%' }}
+             useResizeHandler={true}
+           />
            
         ) : maxFrames > 0 ? (
-           /* 2. IF IT IS A STANDARD LINE TRAJECTORY, KEEP THE ANIMATION CONTROLS */
+           /* 2. STANDARD LINE TRAJECTORY ANIMATION */
            <>
              <Plot
                data={
@@ -237,7 +287,6 @@ function App() {
                boxShadow: '0 10px 25px rgba(0,0,0,0.3)'
              }}>
                
-               {/* Restored Play/Pause hover effects */}
                <button 
                  onClick={() => {
                    if (currentFrame >= maxFrames) setCurrentFrame(1);
@@ -296,7 +345,6 @@ function App() {
                
                <div className="control-divider" style={{ width: '1px', height: '32px', backgroundColor: '#334155' }} />
 
-               {/* Restored Export button hover colors and titles */}
                <button 
                  onClick={handleDownload}
                  title="Export Data"
