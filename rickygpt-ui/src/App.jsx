@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import PlotlyPlot from "react-plotly.js";
+import PhysicsVisualizer from './components/PhysicsVisualizer';
 const Plot = PlotlyPlot.default || PlotlyPlot;
 
 function App() {
@@ -190,7 +191,12 @@ function App() {
       {/* RIGHT PANEL: Interactive WebGL Physics Visualizer */}
       <div className="viz-panel" style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         
-        {maxFrames > 0 ? (
+        {simData?.simplices ? (
+           /* 1. NEW: IF IT IS AN FEM SIMULATION, USE OUR NEW COMPONENT */
+           <PhysicsVisualizer data={simData} />
+           
+        ) : maxFrames > 0 ? (
+           /* 2. IF IT IS A STANDARD LINE TRAJECTORY, KEEP THE ANIMATION CONTROLS */
            <>
              <Plot
                data={
@@ -307,11 +313,13 @@ function App() {
              </div>
            </>
         ) : simData ? (
+           /* 3. FALLBACK FOR BAD DATA */
            <div style={{ color: '#ef4444', padding: '24px', backgroundColor: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)', borderRadius: '8px', maxWidth: '80%' }}>
              <h3 style={{ marginTop: 0, fontSize: '1.1rem', fontWeight: '600' }}>Data Formatting Error</h3>
              <pre style={{ overflowX: 'auto', fontSize: '0.85rem', color: '#f8fafc' }}>{JSON.stringify(simData, null, 2)}</pre>
            </div>
         ) : (
+           /* 4. DEFAULT EMPTY STATE */
            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px', color: '#475569' }}>
              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="12" cy="12" r="10"></circle>
