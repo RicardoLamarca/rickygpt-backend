@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import PlotlyPlot from "react-plotly.js";
-import PhysicsVisualizer from './components/PhysicsVisualizer';
+
+// Ensure Plotly loads correctly in React
 const Plot = PlotlyPlot.default || PlotlyPlot;
 
 function App() {
@@ -13,10 +14,16 @@ function App() {
   const [currentFrame, setCurrentFrame] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   
-  // Speed state for our new Speed Glider (defaults to 1x)
+  // Speed state for the Speed Glider (defaults to 1x)
   const [speed, setSpeed] = useState(1);
 
+  // Safely calculate frames for trajectories
   const maxFrames = simData?.x ? simData.x.length : (simData?.x1 ? simData.x1.length : 0);
+
+  // --- CRITICAL FIX: Robust Data Type Detection ---
+  // If we have simplices (triangles), it's 100% an FEM mesh, regardless of whether 'u' exists.
+  const isFEM = simData?.simplices && Array.isArray(simData.simplices);
+  const isTrajectory = !isFEM && maxFrames > 0;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -28,7 +35,6 @@ function App() {
     setIsLoading(true);
 
     try {
-      // Restored your exact original Render URL
       const response = await fetch('https://rickygpt.onrender.com/simulate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -59,17 +65,18 @@ function App() {
     downloadAnchorNode.remove();
   };
 
+  // Setup animation resets
   useEffect(() => {
-    if (maxFrames > 0) {
+    if (isTrajectory && maxFrames > 0) {
       setCurrentFrame(maxFrames);
       setIsAnimating(false);
     }
-  }, [simData, maxFrames]);
+  }, [simData, maxFrames, isTrajectory]);
 
+  // Handle animation loop
   useEffect(() => {
     let interval;
-    if (isAnimating && maxFrames > 0) {
-      // The interval dynamically updates based on the speed glider
+    if (isAnimating && isTrajectory && maxFrames > 0) {
       interval = setInterval(() => {
         setCurrentFrame((prev) => {
           if (prev >= maxFrames) {
@@ -81,7 +88,7 @@ function App() {
       }, 30 / speed); 
     }
     return () => clearInterval(interval);
-  }, [isAnimating, maxFrames, speed]);
+  }, [isAnimating, maxFrames, speed, isTrajectory]);
 
   return (
     <div className="app-container" style={{ 
@@ -102,7 +109,6 @@ function App() {
           display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px', 
           paddingBottom: '20px', borderBottom: '1px solid #334155' 
         }}>
-          {/* Restored the glowing box-shadow on the logo */}
           <div style={{ 
             backgroundColor: '#3b82f6', color: 'white', width: '36px', height: '36px', 
             borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -156,7 +162,6 @@ function App() {
 
         {/* Input Form */}
         <form onSubmit={handleSubmit} style={{ display: 'flex', gap: '10px' }}>
-          {/* Restored the focus and blur glowing border effects */}
           <input
             type="text"
             value={prompt}
@@ -171,7 +176,6 @@ function App() {
             onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
             onBlur={(e) => e.target.style.borderColor = '#475569'}
           />
-          {/* Restored the button hover transitions and box shadow */}
           <button 
             type="submit" 
             disabled={isLoading || !prompt.trim()} 
@@ -191,61 +195,75 @@ function App() {
       {/* RIGHT PANEL: Interactive WebGL Physics Visualizer */}
       <div className="viz-panel" style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         
-        {simData?.u ? (
-           /* 1. FEM HEATMAP / COLOR GRID */
-           /* Triggered anytime a field variable 'u' is present */
-           <Plot
-             data={[
-               simData.simplices ? {
-                 // If the AI gives us triangles (simplices), draw a beautiful solid colored mesh
-                 type: 'mesh3d',
-                 x: simData.x,
-                 y: simData.y,
-                 z: simData.x.map(() => 0), // Flatten to 2D
-                 i: simData.simplices.map(t => t[0]),
-                 j: simData.simplices.map(t => t[1]),
-                 k: simData.simplices.map(t => t[2]),
-                 intensity: simData.u,
-                 colorscale: 'Jet', 
-                 showscale: true,
-                 colorbar: { title: 'Value (u)', titlefont: { color: '#94a3b8' }, tickfont: { color: '#94a3b8' } },
-                 hoverinfo: 'x+y+intensity'
-               } : {
-                 // Fallback: If AI forgets 'simplices', plot the nodes as colored dots instead of a zig-zag line!
-                 x: simData.x,
-                 y: simData.y,
-                 mode: 'markers',
-                 type: 'scatter',
-                 marker: {
-                   color: simData.u,
-                   colorscale: 'Jet',
-                   size: 12,
-                   symbol: 'square',
-                   showscale: true,
-                   colorbar: { title: 'Value (u)', titlefont: { color: '#94a3b8' }, tickfont: { color: '#94a3b8' } }
-                 }
-               }
-             ]}
-             layout={{
-               paper_bgcolor: 'transparent', plot_bgcolor: 'transparent', font: { color: '#94a3b8', family: 'Inter, sans-serif' },
-               margin: { t: 40, r: 40, b: 40, l: 40 }, autosize: true,
-               scene: { 
-                 // Force the 3D mesh to look like a perfectly flat 2D Heatmap
-                 aspectmode: 'data',
-                 camera: { eye: { x: 0, y: 0, z: 2.2 }, up: { x: 0, y: 1, z: 0 }, projection: { type: 'orthographic' } },
-                 xaxis: { showgrid: false, zeroline: false, showticklabels: false, title: '' },
-                 yaxis: { showgrid: false, zeroline: false, showticklabels: false, title: '' },
-                 zaxis: { showgrid: false, zeroline: false, showticklabels: false, title: '' }
-               },
-               // Standard 2D axes for the fallback scatter plot
-               xaxis: { scaleanchor: "y", scaleratio: 1, showgrid: true, gridcolor: '#1e293b', zerolinecolor: '#334155' },
-               yaxis: { showgrid: true, gridcolor: '#1e293b', zerolinecolor: '#334155' }
-             }}
-             style={{ width: '100%', height: '100%' }}
-             useResizeHandler={true}
-           />
-           
-        ) : maxFrames > 0 ? (
+        {isFEM ? (
+           /* 1. ADVANCED FEM MESH & HEATMAP */
+           <>
+            <Plot
+              data={[
+                {
+                  type: 'mesh3d',
+                  // Deform the mesh if AI provided 'ux' and 'uy', otherwise use base 'x' and 'y'
+                  x: simData.ux ? simData.x.map((x, i) => x + (simData.ux[i] * (simData.deformation_scale || 1))) : simData.x,
+                  y: simData.uy ? simData.y.map((y, i) => y + (simData.uy[i] * (simData.deformation_scale || 1))) : simData.y,
+                  z: new Array(simData.x.length).fill(0), // Force flat 2D rendering
+                  
+                  // Map the triangle connectivity
+                  i: simData.simplices.map(t => t[0]),
+                  j: simData.simplices.map(t => t[1]),
+                  k: simData.simplices.map(t => t[2]),
+                  
+                  // Color the mesh by 'u' (e.g., pressure/temperature). Fallback to zeros if 'u' is missing.
+                  intensity: simData.u || new Array(simData.x.length).fill(0),
+                  colorscale: 'Jet', 
+                  showscale: true,
+                  colorbar: { 
+                    title: simData.field_name || 'Value (u)', 
+                    titlefont: { color: '#94a3b8' }, 
+                    tickfont: { color: '#94a3b8' } 
+                  },
+                  
+                  // Make it look like a clean 2D professional FEA map (no shadows)
+                  flatshading: true,
+                  lighting: { ambient: 1.0, diffuse: 0, specular: 0, roughness: 1, fresnel: 0 },
+                  hoverinfo: 'x+y+intensity'
+                }
+              ]}
+              layout={{
+                paper_bgcolor: 'transparent', plot_bgcolor: 'transparent', font: { color: '#94a3b8', family: 'Inter, sans-serif' },
+                margin: { t: 40, r: 40, b: 40, l: 40 }, autosize: true,
+                scene: { 
+                  aspectmode: 'data', // Keeps squares looking like squares
+                  camera: { eye: { x: 0, y: 0, z: 2.2 }, up: { x: 0, y: 1, z: 0 }, projection: { type: 'orthographic' } },
+                  xaxis: { showgrid: false, zeroline: false, showticklabels: false, title: '' },
+                  yaxis: { showgrid: false, zeroline: false, showticklabels: false, title: '' },
+                  zaxis: { showgrid: false, zeroline: false, showticklabels: false, title: '', range: [-0.01, 0.01] }
+                }
+              }}
+              style={{ width: '100%', height: '100%' }}
+              useResizeHandler={true}
+              config={{ displayModeBar: false }}
+            />
+            
+            {/* FEM Export Button (No timeline needed for static mesh) */}
+            <div className="control-deck" style={{ 
+               backgroundColor: '#1e293b', padding: '12px 24px', borderRadius: '12px', 
+               border: '1px solid #334155', boxShadow: '0 10px 25px rgba(0,0,0,0.3)'
+            }}>
+              <button onClick={handleDownload} title="Export FEM Data"
+                style={{ 
+                  padding: '8px 16px', backgroundColor: 'transparent', color: '#cbd5e1', 
+                  border: '1px solid #475569', borderRadius: '6px', fontWeight: '500', cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', gap: '6px', transition: 'all 0.2s', fontSize: '0.9rem'
+                }}
+                onMouseOver={(e) => { e.target.style.backgroundColor = '#334155'; e.target.style.color = '#ffffff'; }}
+                onMouseOut={(e) => { e.target.style.backgroundColor = 'transparent'; e.target.style.color = '#cbd5e1'; }}
+              >
+                Export JSON
+              </button>
+            </div>
+           </>
+
+        ) : isTrajectory ? (
            /* 2. STANDARD LINE TRAJECTORY ANIMATION */
            <>
              <Plot
@@ -278,12 +296,12 @@ function App() {
                }}
                style={{ width: '100%', height: '100%' }}
                useResizeHandler={true}
+               config={{ displayModeBar: false }}
              />
              
-             {/* Floating Control Deck */}
+             {/* Floating Control Deck for Timelines */}
              <div className="control-deck" style={{ 
-               backgroundColor: '#1e293b',
-               padding: '12px 24px', borderRadius: '12px', border: '1px solid #334155',
+               backgroundColor: '#1e293b', padding: '12px 24px', borderRadius: '12px', border: '1px solid #334155',
                boxShadow: '0 10px 25px rgba(0,0,0,0.3)'
              }}>
                
@@ -309,11 +327,7 @@ function App() {
                    Speed: {speed}x
                  </span>
                  <input 
-                   type="range" 
-                   min="0.1" 
-                   max="3" 
-                   step="0.1"
-                   value={speed}
+                   type="range" min="0.1" max="3" step="0.1" value={speed}
                    onChange={(e) => setSpeed(parseFloat(e.target.value))}
                    style={{ width: '100px', cursor: 'pointer', accentColor: '#10b981' }} 
                  />
@@ -327,10 +341,7 @@ function App() {
                  </span>
                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', width: '100%' }}>
                    <input 
-                     type="range" 
-                     min="1" 
-                     max={maxFrames || 1} 
-                     value={currentFrame || 1}
+                     type="range" min="1" max={maxFrames || 1} value={currentFrame || 1}
                      onChange={(e) => {
                        setIsAnimating(false);
                        setCurrentFrame(parseInt(e.target.value));
@@ -346,8 +357,7 @@ function App() {
                <div className="control-divider" style={{ width: '1px', height: '32px', backgroundColor: '#334155' }} />
 
                <button 
-                 onClick={handleDownload}
-                 title="Export Data"
+                 onClick={handleDownload} title="Export Data"
                  style={{ 
                    padding: '8px 16px', backgroundColor: 'transparent', color: '#cbd5e1', 
                    border: '1px solid #475569', borderRadius: '6px', fontWeight: '500', cursor: 'pointer',
@@ -381,72 +391,37 @@ function App() {
       
       {/* Global CSS for Layout & Animations */}
       <style>{`
-        /* Global Reset to fix the "few pixels" overflow */
-        * {
-          box-sizing: border-box;
-        }
-        body, html {
-          margin: 0;
-          padding: 0;
-          width: 100%;
-          height: 100%;
-          overflow: hidden;
-        }
+        * { box-sizing: border-box; }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; }
 
-        /* Desktop Layout (Default) */
         .app-container { 
-          display: flex; 
-          flex-direction: row; 
-          height: 100vh; /* Fallback for older browsers */
-          height: 100dvh; /* Dynamic height fixes mobile URL bar clipping */
-          width: 100%; 
+          display: flex; flex-direction: row; 
+          height: 100vh; height: 100dvh; width: 100%; 
         }
         .chat-panel { 
-          width: 400px; 
-          border-right: 1px solid #334155; 
-          height: 100%; 
+          width: 400px; border-right: 1px solid #334155; height: 100%; 
         }
         .viz-panel { 
-          flex-grow: 1; 
-          height: 100%; 
+          flex-grow: 1; height: 100%; 
         }
         .control-deck { 
-          position: absolute; 
-          bottom: 40px; 
-          left: 50%; 
-          transform: translateX(-50%); 
-          display: flex; 
-          align-items: center; 
-          gap: 24px; 
-          width: max-content; 
-          max-width: 95%; /* Prevents horizontal overflow on smaller desktop windows */
-          z-index: 50;
+          position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%); 
+          display: flex; align-items: center; gap: 24px; width: max-content; 
+          max-width: 95%; z-index: 50;
         }
         
-        /* Mobile Layout (Phones & small tablets) */
         @media (max-width: 800px) {
           .app-container { flex-direction: column; }
           .chat-panel { 
-            width: 100%; 
-            height: 45dvh; 
-            border-right: none; 
-            border-bottom: 2px solid #334155; 
-            flex-shrink: 0; 
+            width: 100%; height: 45dvh; border-right: none; 
+            border-bottom: 2px solid #334155; flex-shrink: 0; 
           }
-          .viz-panel { 
-            height: 55dvh; 
-            width: 100%; 
-          }
+          .viz-panel { height: 55dvh; width: 100%; }
           .control-deck { 
-            bottom: 16px; 
-            width: 92%; 
-            gap: 12px; 
-            flex-wrap: wrap; 
-            justify-content: center; 
-            padding: 12px !important;
+            bottom: 16px; width: 92%; gap: 12px; flex-wrap: wrap; 
+            justify-content: center; padding: 12px !important;
           }
-          .control-divider { display: none; }
-          .timeline-text { display: none; }
+          .control-divider, .timeline-text { display: none; }
         }
 
         @keyframes bounce {
